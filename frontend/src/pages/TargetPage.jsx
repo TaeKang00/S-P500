@@ -22,7 +22,7 @@ function RecBadge({ rec }) {
   const cfg = REC_CONFIG[rec] ?? { label: rec ?? "—", color: "#6b7280" };
   return (
     <span
-      className="text-xs font-semibold px-2 py-0.5 rounded-sm"
+      className="text-xs font-semibold px-2 py-1 rounded-sm"
       style={{ color: cfg.color, background: cfg.color + "22" }}
     >
       {cfg.label}
