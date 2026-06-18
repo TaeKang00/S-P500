@@ -150,7 +150,7 @@ export default function TargetPage() {
       accessorKey: "company_name",
       header: "기업명",
       cell: (info) => (
-        <span className="text-xs text-gray-300 font-medium truncate">{info.getValue()}</span>
+        <span className="text-xs text-gray-300 font-medium truncate min-w-0">{info.getValue()}</span>
       ),
       size: 160,
     },
@@ -352,13 +352,15 @@ export default function TargetPage() {
                   {r.getVisibleCells().map((c) => {
                     const align = c.column.columnDef.meta?.align;
                     const extraGap = c.column.columnDef.meta?.extraGap;
-                    const alignClass = align === "right" ? "text-right" : align === "center" ? "text-center" : "";
+                    const justifyClass = align === "right" ? "justify-end" : align === "center" ? "justify-center" : "justify-start";
                     return (
                       <td
                         key={c.id}
-                        className={`py-4 align-middle ${alignClass} ${extraGap ? "pl-10 pr-6" : "px-6"}`}
+                        className={`py-4 ${extraGap ? "pl-10 pr-6" : "px-6"}`}
                       >
-                        {flexRender(c.column.columnDef.cell, c.getContext())}
+                        <div className={`flex items-center ${justifyClass}`}>
+                          {flexRender(c.column.columnDef.cell, c.getContext())}
+                        </div>
                       </td>
                     );
                   })}
