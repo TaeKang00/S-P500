@@ -180,20 +180,8 @@ export default function TargetPage() {
       meta: { align: "right" },
       cell: (info) => {
         const v = info.getValue();
-        const row = info.row.original;
-        const high = row.metrics.target_price_high;
-        const low = row.metrics.target_price_low;
         if (v == null) return <span className="text-gray-700 text-xs">—</span>;
-        return (
-          <div className="flex flex-col items-end gap-0.5">
-            <span className="text-xs tnum text-gray-200 font-medium">${v.toFixed(2)}</span>
-            {high != null && low != null && (
-              <span className="text-[10px] tnum text-gray-600">
-                ${low.toFixed(0)}–${high.toFixed(0)}
-              </span>
-            )}
-          </div>
-        );
+        return <span className="text-xs tnum text-gray-200 font-medium">${v.toFixed(2)}</span>;
       },
       size: 80,
     },
