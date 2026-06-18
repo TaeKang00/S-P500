@@ -17,30 +17,29 @@ function ScoreDetail({ item, onClose }) {
   const color = gradeColor(s.grade);
 
   return (
-    <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 flex items-center justify-center p-6"
-      onClick={onClose}
-    >
-      <div
-        className="bg-ink-800 border border-line w-full max-w-sm rounded-sm shadow-2xl overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* 헤더 */}
-        <div className="px-5 py-4 border-b border-line flex items-center justify-between gap-4">
-          <div className="flex-1 min-w-0">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 flex items-center justify-center p-6" onClick={onClose}>
+      <div className="bg-ink-800 border border-line w-full max-w-sm rounded-sm shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+
+        <div className="px-5 py-4 border-b border-line flex items-center justify-between">
+          <div>
             <span className="text-sm font-bold font-mono text-cyan">{item.ticker}</span>
-            <span className="text-xs text-gray-500 ml-2 truncate">{item.company_name}</span>
+            <span className="text-xs text-gray-500 ml-2">{item.company_name}</span>
           </div>
-          <button onClick={onClose} className="text-gray-600 hover:text-gray-300 text-lg leading-none shrink-0">×</button>
+          <button onClick={onClose} className="text-gray-600 hover:text-gray-300 text-lg leading-none">×</button>
         </div>
 
-        {/* 브레이크다운 */}
-        <div className="overflow-y-auto max-h-[60vh]">
+        <div className="px-5 py-6 border-b border-line/30 text-center">
+          <div className="text-3xl font-bold font-mono tnum" style={{ color }}>
+            {s.total > 0 ? "+" : ""}{s.total}
+          </div>
+        </div>
+
+        <div className="py-1 overflow-y-auto max-h-[50vh]">
           {[...s.stock_breakdown, ...s.market_breakdown].map((b, i) => {
             const ptColor = b.points > 0 ? "#10b981" : b.points < 0 ? "#ef4444" : "#6b7280";
             return (
-              <div key={i} className="px-5 py-4 flex items-center justify-between gap-4 border-b border-line/10 last:border-b-0">
-                <span className="text-xs text-gray-400 leading-snug">{b.label}</span>
+              <div key={i} className="flex items-center justify-between px-5 py-3 border-b border-line/20 last:border-b-0">
+                <span className="text-xs text-gray-400">{b.label}</span>
                 <span
                   className="text-xs font-mono tnum font-semibold shrink-0 w-8 text-center py-1 rounded-sm"
                   style={{ color: ptColor, background: ptColor + "22" }}
@@ -51,6 +50,7 @@ function ScoreDetail({ item, onClose }) {
             );
           })}
         </div>
+
       </div>
     </div>
   );
