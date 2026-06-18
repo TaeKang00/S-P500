@@ -322,7 +322,7 @@ export default function WatchlistPage() {
                 disabled={refreshing || fullRefreshing}
                 className="bg-ink-900 border border-line hover:border-cyan/50 rounded-sm px-3 py-2 text-xs text-muted hover:text-gray-200 transition-colors disabled:opacity-30 disabled:cursor-not-allowed whitespace-nowrap"
               >
-                관심종목 업데이트
+                분석 업데이트
               </button>
               {watchlistLastRefreshedAt && (
                 <span className="text-[10px] text-gray-600 tnum whitespace-nowrap">
