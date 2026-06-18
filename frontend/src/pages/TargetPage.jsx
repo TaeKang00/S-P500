@@ -142,6 +142,28 @@ export default function TargetPage() {
       size: 160,
     },
     {
+      accessorFn: (row) => {
+        const cur = row.metrics.current_price;
+        const tgt = row.metrics.target_price_mean;
+        if (!cur || !tgt) return null;
+        return (tgt / cur - 1) * 100;
+      },
+      id: "upside",
+      header: "상승여력",
+      meta: { align: "right" },
+      cell: (info) => {
+        const v = info.getValue();
+        if (v == null) return <span className="text-gray-700 text-xs">—</span>;
+        const c = v >= 20 ? "text-emerald-400" : v >= 5 ? "text-gray-300" : v >= 0 ? "text-gray-500" : "text-red-400";
+        return (
+          <span className={`text-xs tnum font-semibold ${c}`}>
+            {v >= 0 ? "+" : ""}{v.toFixed(1)}%
+          </span>
+        );
+      },
+      size: 80,
+    },
+    {
       accessorFn: (row) => row.metrics.recommendation,
       id: "recommendation",
       header: "의견",
@@ -150,14 +172,14 @@ export default function TargetPage() {
       size: 80,
     },
     {
-      accessorFn: (row) => row.metrics.analyst_count,
-      id: "analyst_count",
-      header: "애널리스트",
+      accessorFn: (row) => row.metrics.target_price_mean,
+      id: "target_mean",
+      header: "목표가",
       meta: { align: "right" },
       cell: (info) => {
         const v = info.getValue();
         if (v == null) return <span className="text-gray-700 text-xs">—</span>;
-        return <span className="text-xs tnum text-gray-500">{v}명</span>;
+        return <span className="text-xs tnum text-gray-200 font-medium">${v.toFixed(2)}</span>;
       },
       size: 80,
     },
@@ -174,14 +196,14 @@ export default function TargetPage() {
       size: 80,
     },
     {
-      accessorFn: (row) => row.metrics.target_price_mean,
-      id: "target_mean",
-      header: "목표가",
+      accessorFn: (row) => row.metrics.analyst_count,
+      id: "analyst_count",
+      header: "애널리스트",
       meta: { align: "right" },
       cell: (info) => {
         const v = info.getValue();
         if (v == null) return <span className="text-gray-700 text-xs">—</span>;
-        return <span className="text-xs tnum text-gray-200 font-medium">${v.toFixed(2)}</span>;
+        return <span className="text-xs tnum text-gray-500">{v}명</span>;
       },
       size: 80,
     },
@@ -189,34 +211,12 @@ export default function TargetPage() {
       accessorFn: (row) => row.score.total,
       id: "score",
       header: "점수",
-      meta: { align: "right" },
+      meta: { align: "right", extraGap: true },
       cell: (info) => {
         const s = info.row.original.score;
         return (
           <span className="font-mono font-bold tnum text-base" style={{ color: gradeColor(s.grade) }}>
             {s.total > 0 ? "+" : ""}{s.total}
-          </span>
-        );
-      },
-      size: 80,
-    },
-    {
-      accessorFn: (row) => {
-        const cur = row.metrics.current_price;
-        const tgt = row.metrics.target_price_mean;
-        if (!cur || !tgt) return null;
-        return (tgt / cur - 1) * 100;
-      },
-      id: "upside",
-      header: "상승여력",
-      meta: { align: "right", extraGap: true },
-      cell: (info) => {
-        const v = info.getValue();
-        if (v == null) return <span className="text-gray-700 text-xs">—</span>;
-        const c = v >= 20 ? "text-emerald-400" : v >= 5 ? "text-gray-300" : v >= 0 ? "text-gray-500" : "text-red-400";
-        return (
-          <span className={`text-xs tnum font-semibold ${c}`}>
-            {v >= 0 ? "+" : ""}{v.toFixed(1)}%
           </span>
         );
       },
