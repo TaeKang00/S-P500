@@ -30,9 +30,17 @@ function RecBadge({ rec }) {
   );
 }
 
-function ScoreDetail({ item, onClose }) {
+function AnalystDetail({ item, onClose }) {
   if (!item) return null;
+  const m = item.metrics;
   const s = item.score;
+
+  const cur = m.current_price;
+  const tgt = m.target_price_mean;
+  const upside = cur && tgt ? (tgt / cur - 1) * 100 : null;
+  const upsideColor = upside == null ? "#6b7280" : upside >= 20 ? "#10b981" : upside >= 5 ? "#d1d5db" : upside >= 0 ? "#6b7280" : "#ef4444";
+
+  const cfg = REC_CONFIG[m.recommendation] ?? { label: m.recommendation ?? "—", color: "#6b7280" };
 
   return (
     <div
@@ -46,25 +54,62 @@ function ScoreDetail({ item, onClose }) {
         <div className="px-5 py-4 border-b border-line flex items-center justify-between gap-4">
           <div className="flex-1 min-w-0">
             <span className="text-sm font-bold font-mono text-cyan">{item.ticker}</span>
-            <span className="text-xs text-gray-500 ml-2 truncate">{item.company_name}</span>
+            <span className="text-xs text-gray-500 ml-2">{item.company_name}</span>
           </div>
           <button onClick={onClose} className="text-gray-600 hover:text-gray-300 text-lg leading-none shrink-0">×</button>
         </div>
-        <div className="overflow-y-auto max-h-[60vh]">
-          {[...s.stock_breakdown, ...s.market_breakdown].map((b, i) => {
-            const ptColor = b.points > 0 ? "#10b981" : b.points < 0 ? "#ef4444" : "#6b7280";
-            return (
-              <div key={i} className="px-5 py-4 flex items-center justify-between gap-4 border-b border-line/10 last:border-b-0">
-                <span className="text-xs text-gray-400 leading-snug">{b.label}</span>
-                <span
-                  className="text-xs font-mono tnum font-semibold shrink-0 w-8 text-center py-1 rounded-sm"
-                  style={{ color: ptColor, background: ptColor + "22" }}
-                >
-                  {b.points > 0 ? "+" : ""}{b.points}
+
+        <div className="px-5 py-5 border-b border-line/30 flex items-center justify-between">
+          <div>
+            <div className="text-[10px] text-gray-600 mb-2">애널리스트 의견</div>
+            <span className="text-sm font-bold px-3 py-1.5 rounded-sm" style={{ color: cfg.color, background: cfg.color + "22" }}>
+              {cfg.label}
+            </span>
+          </div>
+          <div className="text-right">
+            <div className="text-[10px] text-gray-600 mb-1">참여 애널리스트</div>
+            <span className="text-xl font-bold tnum text-gray-300">
+              {m.analyst_count != null ? `${m.analyst_count}명` : "—"}
+            </span>
+          </div>
+        </div>
+
+        <div className="px-5 py-4 border-b border-line/30">
+          <div className="text-[10px] text-gray-600 mb-3">목표주가</div>
+          <div className="grid grid-cols-3 gap-4">
+            {[
+              { label: "평균", value: m.target_price_mean, primary: true },
+              { label: "최고", value: m.target_price_high },
+              { label: "최저", value: m.target_price_low },
+            ].map(({ label, value, primary }) => (
+              <div key={label}>
+                <div className="text-[10px] text-gray-600 mb-1">{label}</div>
+                <span className={`text-sm tnum font-semibold ${primary ? "text-gray-100" : "text-gray-500"}`}>
+                  {value != null ? `$${value.toFixed(1)}` : "—"}
                 </span>
               </div>
-            );
-          })}
+            ))}
+          </div>
+        </div>
+
+        <div className="px-5 py-4 border-b border-line/30 flex items-center justify-between">
+          <div>
+            <div className="text-[10px] text-gray-600 mb-1">현재가</div>
+            <span className="text-sm tnum text-gray-400">{cur != null ? `$${cur.toFixed(1)}` : "—"}</span>
+          </div>
+          <div className="text-right">
+            <div className="text-[10px] text-gray-600 mb-1">상승여력</div>
+            <span className="text-xl font-bold tnum" style={{ color: upsideColor }}>
+              {upside != null ? `${upside >= 0 ? "+" : ""}${upside.toFixed(1)}%` : "—"}
+            </span>
+          </div>
+        </div>
+
+        <div className="px-5 py-4 flex items-center justify-between">
+          <span className="text-xs text-gray-600">종합 점수</span>
+          <span className="text-base font-bold font-mono tnum" style={{ color: gradeColor(s.grade) }}>
+            {s.total > 0 ? "+" : ""}{s.total}
+          </span>
         </div>
       </div>
     </div>
@@ -371,7 +416,7 @@ export default function TargetPage() {
         </div>
       </div>
 
-      <ScoreDetail item={selected} onClose={() => setSelected(null)} />
+      <AnalystDetail item={selected} onClose={() => setSelected(null)} />
     </div>
   );
 }
