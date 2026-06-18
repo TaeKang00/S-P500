@@ -137,7 +137,7 @@ export default function TargetPage() {
       accessorKey: "company_name",
       header: "기업명",
       cell: (info) => (
-        <span className="text-xs text-gray-300 font-medium truncate block">{info.getValue()}</span>
+        <span className="text-xs text-gray-300 font-medium truncate">{info.getValue()}</span>
       ),
       size: 160,
     },
@@ -161,14 +161,6 @@ export default function TargetPage() {
           </span>
         );
       },
-      size: 80,
-    },
-    {
-      accessorFn: (row) => row.metrics.recommendation,
-      id: "recommendation",
-      header: "의견",
-      meta: { align: "center" },
-      cell: (info) => <RecBadge rec={info.getValue()} />,
       size: 80,
     },
     {
