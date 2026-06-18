@@ -303,7 +303,7 @@ export default function TargetPage() {
                         key={h.id}
                         onClick={h.column.getToggleSortingHandler()}
                         style={{ width: h.getSize() }}
-                        className={`${alignClass} text-[10px] text-gray-600 py-3 font-medium cursor-pointer select-none hover:text-gray-300 whitespace-nowrap overflow-hidden ${extraGap ? "pl-8 pr-4" : "px-4"}`}
+                        className={`${alignClass} text-[10px] text-gray-600 py-3 font-medium cursor-pointer select-none hover:text-gray-300 whitespace-nowrap overflow-hidden ${extraGap ? "pl-10 pr-6" : "px-6"}`}
                       >
                         <span className="inline-flex items-center gap-1">
                           {flexRender(h.column.columnDef.header, h.getContext())}
@@ -345,7 +345,7 @@ export default function TargetPage() {
                     return (
                       <td
                         key={c.id}
-                        className={`py-4 align-middle ${alignClass} ${extraGap ? "pl-8 pr-4" : "px-4"}`}
+                        className={`py-4 align-middle ${alignClass} ${extraGap ? "pl-10 pr-6" : "px-6"}`}
                       >
                         {flexRender(c.column.columnDef.cell, c.getContext())}
                       </td>
