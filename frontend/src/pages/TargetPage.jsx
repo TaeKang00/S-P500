@@ -39,78 +39,64 @@ function AnalystDetail({ item, onClose }) {
   const tgt = m.target_price_mean;
   const upside = cur && tgt ? (tgt / cur - 1) * 100 : null;
   const upsideColor = upside == null ? "#6b7280" : upside >= 20 ? "#10b981" : upside >= 5 ? "#d1d5db" : upside >= 0 ? "#6b7280" : "#ef4444";
-
   const cfg = REC_CONFIG[m.recommendation] ?? { label: m.recommendation ?? "—", color: "#6b7280" };
 
+  function Row({ label, children }) {
+    return (
+      <div className="flex items-center justify-between px-5 py-3 border-b border-line/20 last:border-b-0">
+        <span className="text-xs text-gray-600">{label}</span>
+        {children}
+      </div>
+    );
+  }
+
   return (
-    <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 flex items-center justify-center p-6"
-      onClick={onClose}
-    >
-      <div
-        className="bg-ink-800 border border-line w-full max-w-sm rounded-sm shadow-2xl overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="px-5 py-4 border-b border-line flex items-center justify-between gap-4">
-          <div className="flex-1 min-w-0">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 flex items-center justify-center p-6" onClick={onClose}>
+      <div className="bg-ink-800 border border-line w-full max-w-sm rounded-sm shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+
+        <div className="px-5 py-4 border-b border-line flex items-center justify-between">
+          <div>
             <span className="text-sm font-bold font-mono text-cyan">{item.ticker}</span>
             <span className="text-xs text-gray-500 ml-2">{item.company_name}</span>
           </div>
-          <button onClick={onClose} className="text-gray-600 hover:text-gray-300 text-lg leading-none shrink-0">×</button>
+          <button onClick={onClose} className="text-gray-600 hover:text-gray-300 text-lg leading-none">×</button>
         </div>
 
-        <div className="px-5 py-5 border-b border-line/30 flex items-center justify-between">
-          <div>
-            <div className="text-[10px] text-gray-600 mb-2">애널리스트 의견</div>
-            <span className="text-sm font-bold px-3 py-1.5 rounded-sm" style={{ color: cfg.color, background: cfg.color + "22" }}>
+        <div className="px-5 py-6 border-b border-line/30 text-center">
+          <div className="text-3xl font-bold tnum" style={{ color: upsideColor }}>
+            {upside != null ? `${upside >= 0 ? "+" : ""}${upside.toFixed(1)}%` : "—"}
+          </div>
+          <div className="text-[10px] text-gray-600 mt-1.5">상승여력</div>
+        </div>
+
+        <div className="py-1">
+          <Row label="애널리스트 의견">
+            <span className="text-xs font-semibold px-2 py-1 rounded-sm" style={{ color: cfg.color, background: cfg.color + "22" }}>
               {cfg.label}
             </span>
-          </div>
-          <div className="text-right">
-            <div className="text-[10px] text-gray-600 mb-1">참여 애널리스트</div>
-            <span className="text-xl font-bold tnum text-gray-300">
-              {m.analyst_count != null ? `${m.analyst_count}명` : "—"}
+          </Row>
+          <Row label="참여 애널리스트">
+            <span className="text-xs tnum text-gray-400">{m.analyst_count != null ? `${m.analyst_count}명` : "—"}</span>
+          </Row>
+          <Row label="목표가 평균">
+            <span className="text-xs tnum text-gray-200 font-medium">{tgt != null ? `$${tgt.toFixed(1)}` : "—"}</span>
+          </Row>
+          <Row label="목표가 최고">
+            <span className="text-xs tnum text-gray-500">{m.target_price_high != null ? `$${m.target_price_high.toFixed(1)}` : "—"}</span>
+          </Row>
+          <Row label="목표가 최저">
+            <span className="text-xs tnum text-gray-500">{m.target_price_low != null ? `$${m.target_price_low.toFixed(1)}` : "—"}</span>
+          </Row>
+          <Row label="현재가">
+            <span className="text-xs tnum text-gray-400">{cur != null ? `$${cur.toFixed(1)}` : "—"}</span>
+          </Row>
+          <Row label="종합 점수">
+            <span className="text-sm font-bold font-mono tnum" style={{ color: gradeColor(s.grade) }}>
+              {s.total > 0 ? "+" : ""}{s.total}
             </span>
-          </div>
+          </Row>
         </div>
 
-        <div className="px-5 py-4 border-b border-line/30">
-          <div className="text-[10px] text-gray-600 mb-3">목표주가</div>
-          <div className="grid grid-cols-3 gap-4">
-            {[
-              { label: "평균", value: m.target_price_mean, primary: true },
-              { label: "최고", value: m.target_price_high },
-              { label: "최저", value: m.target_price_low },
-            ].map(({ label, value, primary }) => (
-              <div key={label}>
-                <div className="text-[10px] text-gray-600 mb-1">{label}</div>
-                <span className={`text-sm tnum font-semibold ${primary ? "text-gray-100" : "text-gray-500"}`}>
-                  {value != null ? `$${value.toFixed(1)}` : "—"}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="px-5 py-4 border-b border-line/30 flex items-center justify-between">
-          <div>
-            <div className="text-[10px] text-gray-600 mb-1">현재가</div>
-            <span className="text-sm tnum text-gray-400">{cur != null ? `$${cur.toFixed(1)}` : "—"}</span>
-          </div>
-          <div className="text-right">
-            <div className="text-[10px] text-gray-600 mb-1">상승여력</div>
-            <span className="text-xl font-bold tnum" style={{ color: upsideColor }}>
-              {upside != null ? `${upside >= 0 ? "+" : ""}${upside.toFixed(1)}%` : "—"}
-            </span>
-          </div>
-        </div>
-
-        <div className="px-5 py-4 flex items-center justify-between">
-          <span className="text-xs text-gray-600">종합 점수</span>
-          <span className="text-base font-bold font-mono tnum" style={{ color: gradeColor(s.grade) }}>
-            {s.total > 0 ? "+" : ""}{s.total}
-          </span>
-        </div>
       </div>
     </div>
   );
