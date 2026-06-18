@@ -320,11 +320,12 @@ def run_watchlist_refresh() -> dict:
         logger.info("===== run_watchlist_refresh finished =====")
 
 
-def run_daily_update() -> dict:
+def run_daily_update(_started: bool = False) -> dict:
     """Top-level entry. Safe to call manually too."""
-    if not refresh_state.try_start():
-        logger.info("run_daily_update: already running — skipped")
-        return {}
+    if not _started:
+        if not refresh_state.try_start():
+            logger.info("run_daily_update: already running — skipped")
+            return {}
     logger.info("===== run_daily_update started at %s =====", datetime.utcnow())
     refresh_state.update(2, "종목 목록 갱신 중…")
     db = SessionLocal()

@@ -47,9 +47,9 @@ def refresh_timing(db: Session = Depends(get_db)):
 
 @router.post("/full-refresh", response_model=UpdateStatus)
 def full_refresh():
-    if refresh_state.get()["running"]:
+    if not refresh_state.try_start():
         raise HTTPException(status_code=409, detail="이미 새로고침 중입니다.")
-    threading.Thread(target=run_daily_update, daemon=True).start()
+    threading.Thread(target=lambda: run_daily_update(_started=True), daemon=True).start()
     return UpdateStatus(ok=True, message="새로고침 시작됨")
 
 

@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 
 from .. import refresh_state
-from ..database import get_db
+from ..database import SessionLocal, get_db
 from ..models import MarketTiming, Stock, WatchlistItem
 from ..schemas import (
     ScoreBreakdown,
@@ -19,7 +19,7 @@ from ..schemas import (
     WatchlistMetrics,
 )
 from ..services import scoring, yfinance_svc
-from ..services.updater import refresh_single_item, run_watchlist_refresh
+from ..services.updater import refresh_single_item, refresh_watchlist_details
 
 router = APIRouter(prefix="/api/watchlist", tags=["watchlist"])
 logger = logging.getLogger(__name__)
@@ -166,7 +166,23 @@ def remove_from_watchlist(ticker: str, db: Session = Depends(get_db)):
 @router.post("/refresh", response_model=UpdateStatus)
 def refresh_now():
     """Start a background refresh of all watchlist detail metrics."""
-    if refresh_state.get()["running"]:
+    if not refresh_state.try_start():
         raise HTTPException(status_code=409, detail="이미 새로고침 중입니다.")
-    threading.Thread(target=run_watchlist_refresh, daemon=True).start()
+
+    def _worker():
+        db = SessionLocal()
+        try:
+            refresh_state.update(0, "관심종목 갱신 시작…")
+            refresh_watchlist_details(
+                db,
+                on_progress=lambda pct, step: refresh_state.update(pct, step),
+            )
+            refresh_state.finish()
+        except Exception:
+            refresh_state.fail()
+            raise
+        finally:
+            db.close()
+
+    threading.Thread(target=_worker, daemon=True).start()
     return UpdateStatus(ok=True, message="관심종목 갱신 시작됨")
