@@ -19,7 +19,7 @@ from ..schemas import (
     WatchlistMetrics,
 )
 from ..services import scoring, yfinance_svc
-from ..services.updater import run_watchlist_refresh
+from ..services.updater import refresh_single_item, run_watchlist_refresh
 
 router = APIRouter(prefix="/api/watchlist", tags=["watchlist"])
 logger = logging.getLogger(__name__)
@@ -139,6 +139,9 @@ def add_to_watchlist(req: WatchlistAddRequest, db: Session = Depends(get_db)):
     db.add(item)
     db.commit()
     db.refresh(item)
+
+    # 추가된 종목만 백그라운드에서 즉시 상세 데이터 갱신
+    threading.Thread(target=refresh_single_item, args=(ticker,), daemon=True).start()
 
     market_score, market_entries = _current_market_score(db)
     return _build_scored_item(item, market_score, market_entries)

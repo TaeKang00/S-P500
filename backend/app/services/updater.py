@@ -128,6 +128,77 @@ def refresh_constituents_and_ranks(db: Session) -> dict:
     return {"constituents": len(active), "with_market_cap": sum(1 for s in active if s.market_cap)}
 
 
+# ───────────────────────── 단일 종목 즉시 갱신 ─────────────────────────
+
+def refresh_single_item(ticker: str) -> None:
+    """추가된 종목 하나만 백그라운드에서 상세 데이터 갱신."""
+    db = SessionLocal()
+    try:
+        stock = db.execute(select(Stock).where(Stock.ticker == ticker)).scalar_one_or_none()
+        if not stock:
+            return
+        item = db.execute(
+            select(WatchlistItem).where(WatchlistItem.stock_id == stock.id)
+        ).scalar_one_or_none()
+        if not item:
+            return
+
+        try:
+            detail = yfinance_svc.fetch_watchlist_detail(ticker)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("single item refresh failed for %s: %s", ticker, exc)
+            return
+
+        item.current_price = detail.current_price
+        item.rsi_14 = detail.rsi_14
+        item.drawdown_52w = detail.drawdown_52w
+        item.ma200_deviation = detail.ma200_deviation
+        item.forward_pe = detail.forward_pe
+        item.forward_eps = detail.forward_eps
+        item.trailing_eps = detail.trailing_eps
+        item.eps_y1 = detail.eps_y1
+        item.eps_y2 = detail.eps_y2
+        item.eps_y3 = detail.eps_y3
+        item.debt_to_equity = detail.debt_to_equity
+        item.roe = detail.roe
+        item.fcf_yield = detail.fcf_yield
+        item.target_price_mean = detail.target_price_mean
+        item.target_price_high = detail.target_price_high
+        item.target_price_low = detail.target_price_low
+        item.recommendation = detail.recommendation
+        item.analyst_count = detail.analyst_count
+        item.last_refreshed = datetime.utcnow()
+
+        if detail.forward_eps is not None and detail.trailing_eps and detail.trailing_eps > 0:
+            item.eps_growth = (detail.forward_eps / detail.trailing_eps - 1.0) * 100.0
+        else:
+            item.eps_growth = None
+
+        if detail.current_price and detail.trailing_eps and detail.trailing_eps > 0:
+            item.current_per = detail.current_price / detail.trailing_eps
+        else:
+            item.current_per = None
+
+        eps_vals = [v for v in (detail.eps_y1, detail.eps_y2, detail.eps_y3)
+                    if v is not None and v > 0]
+        if eps_vals and detail.current_price:
+            avg_eps = sum(eps_vals) / len(eps_vals)
+            avg_per = detail.current_price / avg_eps
+            item.forward_pe_3y_avg = avg_per
+            if item.current_per and avg_per > 0:
+                item.forward_pe_vs_avg = (item.current_per / avg_per - 1.0) * 100.0
+            else:
+                item.forward_pe_vs_avg = None
+        else:
+            item.forward_pe_3y_avg = None
+            item.forward_pe_vs_avg = None
+
+        db.commit()
+        logger.info("single item refresh complete: %s", ticker)
+    finally:
+        db.close()
+
+
 # ───────────────────────── 3+4: watchlist details + FWD PE history ─────────────────────────
 
 def refresh_watchlist_details(db: Session, on_progress=None) -> dict:
