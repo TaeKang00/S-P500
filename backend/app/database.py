@@ -47,6 +47,11 @@ def _migrate_add_columns():
         ("forward_pe_3y_avg", "FLOAT"),
         ("roe", "FLOAT"),
         ("fcf_yield", "FLOAT"),
+        ("target_price_mean", "FLOAT"),
+        ("target_price_high", "FLOAT"),
+        ("target_price_low", "FLOAT"),
+        ("recommendation", "TEXT"),
+        ("analyst_count", "INTEGER"),
     ]
     stocks_cols = [
         ("drawdown_52w", "FLOAT"),

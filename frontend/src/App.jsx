@@ -3,6 +3,7 @@ import { NavLink, Navigate, Route, Routes } from "react-router-dom";
 import { api } from "./api/client.js";
 import { MarketTimingBar } from "./components/MarketTimingBar.jsx";
 import ListPage from "./pages/ListPage.jsx";
+import TargetPage from "./pages/TargetPage.jsx";
 import WatchlistPage from "./pages/WatchlistPage.jsx";
 
 export const RefreshContext = createContext(null);
@@ -28,6 +29,7 @@ function TopNav() {
           <nav className="flex gap-1">
             <NavLink to="/list" className={linkClass}>전체종목</NavLink>
             <NavLink to="/watchlist" className={linkClass}>관심종목</NavLink>
+            <NavLink to="/targets" className={linkClass}>목표가</NavLink>
           </nav>
         </div>
 
@@ -120,6 +122,7 @@ export default function App() {
             <Route path="/" element={<Navigate to="/list" replace />} />
             <Route path="/list" element={<ListPage />} />
             <Route path="/watchlist" element={<WatchlistPage />} />
+            <Route path="/targets" element={<TargetPage />} />
           </Routes>
         </main>
         <footer className="border-t border-line px-5 py-3 text-[10px] text-muted tracking-wide flex justify-between">

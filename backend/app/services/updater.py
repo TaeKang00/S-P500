@@ -159,6 +159,11 @@ def refresh_watchlist_details(db: Session, on_progress=None) -> dict:
         item.debt_to_equity = detail.debt_to_equity
         item.roe = detail.roe
         item.fcf_yield = detail.fcf_yield
+        item.target_price_mean = detail.target_price_mean
+        item.target_price_high = detail.target_price_high
+        item.target_price_low = detail.target_price_low
+        item.recommendation = detail.recommendation
+        item.analyst_count = detail.analyst_count
         item.last_refreshed = datetime.utcnow()
 
         # EPS Growth = (Forward EPS / Trailing EPS - 1) × 100

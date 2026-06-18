@@ -77,6 +77,12 @@ class WatchlistItem(Base):
     eps_y3 = Column(Float)
     roe = Column(Float)        # Return on Equity (%)
     fcf_yield = Column(Float)  # FCF / Market Cap × 100 (%)
+    # Analyst consensus
+    target_price_mean = Column(Float)
+    target_price_high = Column(Float)
+    target_price_low = Column(Float)
+    recommendation = Column(String)   # "strong_buy" / "buy" / "hold" / "sell" / "strong_sell"
+    analyst_count = Column(Integer)
     last_refreshed = Column(DateTime, default=datetime.utcnow)
 
     stock = relationship("Stock", back_populates="watchlist_item")

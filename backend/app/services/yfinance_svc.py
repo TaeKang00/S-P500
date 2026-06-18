@@ -356,6 +356,11 @@ class StockDetail:
     debt_to_equity: Optional[float] = None
     roe: Optional[float] = None        # Return on Equity (%)
     fcf_yield: Optional[float] = None  # FCF / Market Cap × 100 (%)
+    target_price_mean: Optional[float] = None
+    target_price_high: Optional[float] = None
+    target_price_low: Optional[float] = None
+    recommendation: Optional[str] = None
+    analyst_count: Optional[int] = None
 
 
 def fetch_watchlist_detail(ticker: str) -> StockDetail:
@@ -430,6 +435,15 @@ def fetch_watchlist_detail(ticker: str) -> StockDetail:
 
     # Historical annual EPS from income statement (last 3 fiscal years).
     detail.eps_y1, detail.eps_y2, detail.eps_y3 = _fetch_annual_eps(tk)
+
+    # Analyst consensus
+    detail.target_price_mean = _clean(info.get("targetMeanPrice"))
+    detail.target_price_high = _clean(info.get("targetHighPrice"))
+    detail.target_price_low = _clean(info.get("targetLowPrice"))
+    rec = info.get("recommendationKey")
+    detail.recommendation = str(rec).lower().replace(" ", "_") if rec else None
+    ac = info.get("numberOfAnalystOpinions")
+    detail.analyst_count = int(ac) if ac is not None else None
 
     return detail
 

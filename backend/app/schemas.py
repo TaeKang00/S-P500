@@ -44,6 +44,11 @@ class WatchlistMetrics(StockBase):
     eps_growth: Optional[float] = None
     roe: Optional[float] = None
     fcf_yield: Optional[float] = None
+    target_price_mean: Optional[float] = None
+    target_price_high: Optional[float] = None
+    target_price_low: Optional[float] = None
+    recommendation: Optional[str] = None
+    analyst_count: Optional[int] = None
     last_refreshed: Optional[datetime] = None
 
 
