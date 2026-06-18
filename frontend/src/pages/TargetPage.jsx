@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { RefreshContext } from "../App.jsx";
 import {
   flexRender,
@@ -72,16 +72,57 @@ function ScoreDetail({ item, onClose }) {
 }
 
 export default function TargetPage() {
-  const { q } = useContext(RefreshContext);
+  const { fullRefreshing, q } = useContext(RefreshContext);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [progress, setProgress] = useState(null);
   const [selected, setSelected] = useState(null);
   const [sorting, setSorting] = useState([{ id: "upside", desc: true }]);
 
-  useEffect(() => {
+  async function load() {
     setLoading(true);
-    api.listWatchlist().then(setItems).finally(() => setLoading(false));
-  }, []);
+    try {
+      setItems(await api.listWatchlist());
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    if (!refreshing) return;
+    const id = setInterval(async () => {
+      try {
+        const p = await api.getRefreshProgress();
+        setProgress({ pct: p.pct, step: p.step });
+        if (!p.running) {
+          clearInterval(id);
+          setRefreshing(false);
+          setProgress(null);
+          if (p.pct === 100) await load();
+        }
+      } catch {
+        clearInterval(id);
+        setRefreshing(false);
+        setProgress(null);
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [refreshing]);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    setProgress({ pct: 0, step: "시작 중…" });
+    try {
+      await api.refreshWatchlist();
+    } catch (e) {
+      setRefreshing(false);
+      setProgress(null);
+      alert(e.message);
+    }
+  }
 
   const columns = useMemo(() => [
     {
@@ -157,6 +198,21 @@ export default function TargetPage() {
       size: 80,
     },
     {
+      accessorFn: (row) => row.score.total,
+      id: "score",
+      header: "점수",
+      meta: { align: "right" },
+      cell: (info) => {
+        const s = info.row.original.score;
+        return (
+          <span className="font-mono font-bold tnum text-base" style={{ color: gradeColor(s.grade) }}>
+            {s.total > 0 ? "+" : ""}{s.total}
+          </span>
+        );
+      },
+      size: 80,
+    },
+    {
       accessorFn: (row) => {
         const cur = row.metrics.current_price;
         const tgt = row.metrics.target_price_mean;
@@ -205,7 +261,30 @@ export default function TargetPage() {
           <h1 className="text-2xl font-bold text-white tracking-tight">
             목표가 <span className="text-cyan">{filteredItems.length}</span>
           </h1>
-          <p className="text-xs text-gray-600 mt-1">월가 애널리스트 컨센서스 · 관심종목 기준</p>
+        </div>
+        <div className="flex items-center gap-3">
+          {refreshing && progress ? (
+            <div className="flex flex-col items-end gap-1 min-w-[180px]">
+              <div className="flex justify-between items-center w-full">
+                <span className="text-[10px] text-gray-500 truncate max-w-[130px]">{progress.step}</span>
+                <span className="text-[10px] text-cyan tnum font-semibold ml-2">{progress.pct}%</span>
+              </div>
+              <div className="h-1 w-full bg-ink-700 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-cyan rounded-full transition-all duration-500"
+                  style={{ width: `${progress.pct}%` }}
+                />
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing || fullRefreshing}
+              className="bg-ink-900 border border-line hover:border-cyan/50 rounded-sm px-3 py-2 text-xs text-muted hover:text-gray-200 transition-colors disabled:opacity-30 disabled:cursor-not-allowed whitespace-nowrap"
+            >
+              목표가 업데이트
+            </button>
+          )}
         </div>
       </div>
 
