@@ -1,9 +1,8 @@
 """
 Scoring engine.
 
-Implements both rule-sets from the spec verbatim:
-  A. Stock Metrics  (per-watchlisted-stock)
-  B. Market Timing  (applied uniformly to every watchlisted stock)
+A. Stock Metrics  (per-watchlisted-stock)   max +11
+B. Market Timing  (applied uniformly)        max +6
 
 Final grade is based on the sum of A + B.
 """
@@ -36,31 +35,14 @@ class TotalScore:
 # ─────────────────────────── A. STOCK METRICS ───────────────────────────
 
 def _score_drawdown_52w(drawdown: Optional[float]) -> int:
-    """52주 고점 대비 하락률 (drawdown is negative, e.g. -12.5 means down 12.5%)."""
+    """52주 고점 대비 하락률. MA200과 이중 계산 방지를 위해 최대 +2 캡."""
     if drawdown is None:
         return 0
     if drawdown >= -5:
         return 0
     if -15 <= drawdown < -5:
         return 1
-    if -30 <= drawdown < -15:
-        return 2
-    return 3  # drawdown < -30
-
-
-def _score_ma200_deviation(dev: Optional[float]) -> int:
-    """200일 이동평균 괴리율 (positive = above MA200)."""
-    if dev is None:
-        return 0
-    if dev > 20:
-        return -2
-    if 10 <= dev <= 20:
-        return -1
-    if -5 <= dev < 10:
-        return 0
-    if -15 <= dev < -5:
-        return 1
-    return 2  # dev < -15
+    return 2  # -15% 이하 모두 +2 (기존 -30% 이하 +3 제거)
 
 
 def _score_fwd_pe_vs_avg(diff: Optional[float]) -> int:
@@ -93,41 +75,75 @@ def _score_eps_growth(g: Optional[float]) -> int:
     return -2  # g < -20
 
 
-def _score_rsi(rsi: Optional[float]) -> int:
-    if rsi is None:
+def _score_roe(roe: Optional[float]) -> int:
+    """ROE (%). 자기자본 대비 수익률 — 퀄리티 핵심 지표."""
+    if roe is None:
         return 0
-    if rsi <= 25:
+    if roe >= 20:
+        return 2
+    if 10 <= roe < 20:
         return 1
-    if rsi >= 75:
+    if 5 <= roe < 10:
+        return 0
+    if 0 <= roe < 5:
+        return -1
+    return -2  # roe < 0
+
+
+def _score_fcf_yield(fcf_yield: Optional[float]) -> int:
+    """FCF Yield = FCF / 시총 × 100 (%). 실제 현금 창출력."""
+    if fcf_yield is None:
+        return 0
+    if fcf_yield >= 5:
+        return 2
+    if 3 <= fcf_yield < 5:
+        return 1
+    if 1 <= fcf_yield < 3:
+        return 0
+    return -1  # < 1% or negative
+
+
+def _score_debt_equity(de: Optional[float]) -> int:
+    """D/E 기준 완화(0.3→0.5) + 고부채 페널티 추가."""
+    if de is None:
+        return 0
+    if de <= 0.5:
+        return 1
+    if de > 2.0:
         return -1
     return 0
 
 
-def _score_debt_equity(de: Optional[float]) -> int:
-    if de is None:
-        return 0
-    return 1 if de <= 0.3 else 0
-
-
-def score_partial_stock(drawdown_52w: Optional[float], ma200_deviation: Optional[float]) -> int:
-    """Partial stock score using only fast_info data (no RSI/PER/EPS/D/E)."""
-    return _score_drawdown_52w(drawdown_52w) + _score_ma200_deviation(ma200_deviation)
+def score_partial_stock(drawdown_52w: Optional[float]) -> int:
+    """Partial stock score using only fast_info data (drawdown only)."""
+    return _score_drawdown_52w(drawdown_52w)
 
 
 def score_stock(metrics) -> tuple[int, list[ScoreEntry]]:
     """Compute the per-stock score and a breakdown."""
+    per_score = _score_fwd_pe_vs_avg(metrics.forward_pe_vs_avg)
+
+    # PEG 조정: EPS 성장 20%+ 이면서 PER이 3년 평균보다 높은 경우 페널티 1점 완화.
+    # 고성장 기업은 프리미엄 PER이 일부 정당화됨.
+    peg_label = "PER 괴리율 (현재PER/3년평균)"
+    if (metrics.eps_growth is not None and metrics.eps_growth >= 20
+            and metrics.forward_pe_vs_avg is not None and metrics.forward_pe_vs_avg > 5
+            and per_score < 0):
+        per_score += 1
+        peg_label += " *성장주조정"
+
     entries: list[ScoreEntry] = [
         ScoreEntry("52주 고점 대비 하락률 (%)", metrics.drawdown_52w,
                    _score_drawdown_52w(metrics.drawdown_52w)),
-        ScoreEntry("200일 이동평균 괴리율 (%)", metrics.ma200_deviation,
-                   _score_ma200_deviation(metrics.ma200_deviation)),
-        ScoreEntry("PER 괴리율 (현재PER/3년평균)", metrics.forward_pe_vs_avg,
-                   _score_fwd_pe_vs_avg(metrics.forward_pe_vs_avg)),
+        ScoreEntry(peg_label, metrics.forward_pe_vs_avg, per_score),
         ScoreEntry("EPS Growth (%)", metrics.eps_growth,
                    _score_eps_growth(metrics.eps_growth)),
-        ScoreEntry("RSI (14)", metrics.rsi_14, _score_rsi(metrics.rsi_14)),
         ScoreEntry("Debt to Equity", metrics.debt_to_equity,
                    _score_debt_equity(metrics.debt_to_equity)),
+        ScoreEntry("ROE (%)", getattr(metrics, "roe", None),
+                   _score_roe(getattr(metrics, "roe", None))),
+        ScoreEntry("FCF Yield (%)", getattr(metrics, "fcf_yield", None),
+                   _score_fcf_yield(getattr(metrics, "fcf_yield", None))),
     ]
     return sum(e.points for e in entries), entries
 
@@ -135,7 +151,7 @@ def score_stock(metrics) -> tuple[int, list[ScoreEntry]]:
 # ───────────────────────── B. MARKET TIMING ─────────────────────────
 
 def _score_spy_drawdown(dd: Optional[float]) -> int:
-    """SPY 52주 하락률 (negative). Spec uses ‘drop sizes’."""
+    """SPY 52주 하락률. 급락 시 과도 가산 방지를 위해 최대 +2 캡."""
     if dd is None:
         return 0
     if dd >= -5:
@@ -144,7 +160,7 @@ def _score_spy_drawdown(dd: Optional[float]) -> int:
         return 0
     if -20 <= dd < -10:
         return 1
-    return 3  # dd < -20
+    return 2  # dd < -20 (기존 +3에서 조정)
 
 
 def _score_vix(vix: Optional[float]) -> int:

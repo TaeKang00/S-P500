@@ -106,6 +106,9 @@ def refresh_constituents_and_ranks(db: Session) -> dict:
             ("eps_y3", "eps_y3"),
             ("current_per", "current_per"),
             ("forward_pe_vs_avg", "forward_pe_vs_avg"),
+            ("business_summary", "business_summary"),
+            ("roe", "roe"),
+            ("fcf_yield", "fcf_yield"),
         ):
             val = data.get(key)
             if val is not None:
@@ -154,6 +157,8 @@ def refresh_watchlist_details(db: Session, on_progress=None) -> dict:
         item.eps_y2 = detail.eps_y2
         item.eps_y3 = detail.eps_y3
         item.debt_to_equity = detail.debt_to_equity
+        item.roe = detail.roe
+        item.fcf_yield = detail.fcf_yield
         item.last_refreshed = datetime.utcnow()
 
         # EPS Growth = (Forward EPS / Trailing EPS - 1) × 100

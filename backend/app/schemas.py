@@ -19,7 +19,7 @@ class StockListItem(StockBase):
     in_watchlist: bool = False
     return_1y: Optional[float] = None
     return_3y_avg: Optional[float] = None
-    # Partial signal (market timing + 52w drawdown + MA200)
+    tech_score: Optional[int] = None
     tech_grade: Optional[str] = None
     tech_grade_label: Optional[str] = None
     tech_grade_color: Optional[str] = None
@@ -42,6 +42,8 @@ class WatchlistMetrics(StockBase):
     trailing_eps: Optional[float] = None
     debt_to_equity: Optional[float] = None
     eps_growth: Optional[float] = None
+    roe: Optional[float] = None
+    fcf_yield: Optional[float] = None
     last_refreshed: Optional[datetime] = None
 
 

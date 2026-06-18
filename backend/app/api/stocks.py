@@ -3,7 +3,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import or_, select
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import MarketTiming, Stock, WatchlistItem
@@ -16,26 +16,28 @@ router = APIRouter(prefix="/api/stocks", tags=["stocks"])
 class _StockMetrics:
     """Adapter: lets score_stock() work with a Stock ORM row."""
     def __init__(self, s: Stock):
-        self.drawdown_52w    = s.drawdown_52w
-        self.ma200_deviation = s.ma200_deviation
-        self.rsi_14          = getattr(s, "rsi_14", None)
-        self.eps_growth      = getattr(s, "eps_growth", None)
-        self.debt_to_equity  = getattr(s, "debt_to_equity", None)
+        self.drawdown_52w      = s.drawdown_52w
+        self.eps_growth        = getattr(s, "eps_growth", None)
+        self.debt_to_equity    = getattr(s, "debt_to_equity", None)
         self.forward_pe_vs_avg = getattr(s, "forward_pe_vs_avg", None)
+        self.roe               = getattr(s, "roe", None)
+        self.fcf_yield         = getattr(s, "fcf_yield", None)
 
 
 def _grade_from_stock(s: Stock, market_score: int):
-    """Full grade using all bulk-available metrics (no PER deviation)."""
-    if s.drawdown_52w is None and s.ma200_deviation is None:
-        return None, None, None
+    """Full grade using all bulk-available metrics. Returns (score, key, label, color)."""
+    if s.drawdown_52w is None:
+        return None, None, None, None
     sc, _ = scoring.score_stock(_StockMetrics(s))
-    return scoring.grade_for(sc + market_score)
+    total = sc + market_score
+    return (total, *scoring.grade_for(total))
 
 
 def _grade_from_watchlist(item: WatchlistItem, market_score: int):
-    """Full grade using complete watchlist metrics including PER deviation."""
+    """Full grade using complete watchlist metrics. Returns (score, key, label, color)."""
     sc, _ = scoring.score_stock(item)
-    return scoring.grade_for(sc + market_score)
+    total = sc + market_score
+    return (total, *scoring.grade_for(total))
 
 
 @router.get("", response_model=list[StockListItem])
@@ -63,16 +65,16 @@ def list_stocks(
     if mt:
         market_score, _ = scoring.score_market_timing(mt.spy_drawdown_52w, mt.vix, mt.fear_greed)
 
-    wl_grades: dict[int, tuple[str, str, str]] = {}
+    wl_grades: dict[int, tuple] = {}
     for item in db.execute(select(WatchlistItem)).scalars().all():
         wl_grades[item.stock_id] = _grade_from_watchlist(item, market_score)
 
     result = []
     for s in stocks:
         if s.id in wl_grades:
-            grade_key, grade_label, grade_color = wl_grades[s.id]
+            tech_score, grade_key, grade_label, grade_color = wl_grades[s.id]
         else:
-            grade_key, grade_label, grade_color = _grade_from_stock(s, market_score)
+            tech_score, grade_key, grade_label, grade_color = _grade_from_stock(s, market_score)
 
         result.append(StockListItem(
             id=s.id,
@@ -84,6 +86,7 @@ def list_stocks(
             in_watchlist=s.id in wl_grades,
             return_1y=getattr(s, "return_1y", None),
             return_3y_avg=getattr(s, "return_3y_avg", None),
+            tech_score=tech_score,
             tech_grade=grade_key,
             tech_grade_label=grade_label,
             tech_grade_color=grade_color,
@@ -99,3 +102,5 @@ def list_sectors(db: Session = Depends(get_db)):
         .distinct()
     ).all()
     return sorted({row[0] for row in rows if row[0]})
+
+

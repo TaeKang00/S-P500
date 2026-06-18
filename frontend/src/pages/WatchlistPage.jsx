@@ -7,7 +7,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { api } from "../api/client.js";
-import { SignalBadge, gradeColor } from "../components/SignalBadge.jsx";
+import { gradeColor } from "../components/SignalBadge.jsx";
 import { fmt, trendClass } from "../lib/format.js";
 import { sectorKo } from "../lib/sectors.js";
 
@@ -22,70 +22,36 @@ function ScoreDetail({ item, onClose }) {
       onClick={onClose}
     >
       <div
-        className="bg-ink-800 border border-line w-full max-w-sm rounded-sm overflow-hidden shadow-2xl"
+        className="bg-ink-800 border border-line w-full max-w-sm rounded-sm shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 헤더 */}
-        <div className="px-4 py-3 border-b border-line flex items-start justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-sm font-bold font-mono text-cyan">{item.ticker}</span>
-              <SignalBadge grade={s.grade} />
-            </div>
-            <div className="text-xs text-gray-500">{item.company_name}</div>
+        <div className="px-5 py-4 border-b border-line flex items-center justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <span className="text-sm font-bold font-mono text-cyan">{item.ticker}</span>
+            <span className="text-xs text-gray-500 ml-2 truncate">{item.company_name}</span>
           </div>
-          <button onClick={onClose} className="text-gray-600 hover:text-gray-300 text-base leading-none shrink-0 mt-1">×</button>
-        </div>
-
-        {/* 총점 */}
-        <div className="px-4 py-4 border-b border-line flex items-end gap-6">
-          <div>
-            <div className="text-[10px] text-muted mb-1">총점</div>
-            <div className="font-mono text-3xl font-bold tnum leading-none" style={{ color }}>
-              {s.total > 0 ? "+" : ""}{s.total}
-            </div>
-          </div>
-          <div className="flex gap-4 pb-1">
-            <div>
-              <div className="text-[10px] text-muted mb-1">개별 (A)</div>
-              <div className="font-mono text-sm tnum text-gray-400">{s.stock_score > 0 ? "+" : ""}{s.stock_score}</div>
-            </div>
-            <div>
-              <div className="text-[10px] text-muted mb-1">타이밍 (B)</div>
-              <div className="font-mono text-sm tnum text-gray-400">{s.market_score > 0 ? "+" : ""}{s.market_score}</div>
-            </div>
-          </div>
+          <button onClick={onClose} className="text-gray-600 hover:text-gray-300 text-lg leading-none shrink-0">×</button>
         </div>
 
         {/* 브레이크다운 */}
-        <div className="max-h-[55vh] overflow-y-auto">
-          <BreakdownSection title={`개별 종목 (A) · ${s.stock_score > 0 ? "+" : ""}${s.stock_score}점`} rows={s.stock_breakdown} />
-          <BreakdownSection title={`시장 타이밍 (B) · ${s.market_score > 0 ? "+" : ""}${s.market_score}점`} rows={s.market_breakdown} />
+        <div className="overflow-y-auto max-h-[60vh]">
+          {[...s.stock_breakdown, ...s.market_breakdown].map((b, i) => {
+            const ptColor = b.points > 0 ? "#10b981" : b.points < 0 ? "#ef4444" : "#6b7280";
+            return (
+              <div key={i} className="px-5 py-4 flex items-center justify-between gap-4 border-b border-line/10 last:border-b-0">
+                <span className="text-xs text-gray-400 leading-snug">{b.label}</span>
+                <span
+                  className="text-xs font-mono tnum font-semibold shrink-0 w-8 text-center py-1 rounded-sm"
+                  style={{ color: ptColor, background: ptColor + "22" }}
+                >
+                  {b.points > 0 ? "+" : ""}{b.points}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
-    </div>
-  );
-}
-
-function BreakdownSection({ title, rows }) {
-  return (
-    <div className="px-4 py-3 border-b border-line last:border-b-0">
-      <div className="text-[10px] uppercase tracking-wider text-muted mb-2">{title}</div>
-      {(rows ?? []).map((b, i) => {
-        const ptColor = b.points > 0 ? "#10b981" : b.points < 0 ? "#ef4444" : "#4b5563";
-        const ptBg    = b.points > 0 ? "#10b98118" : b.points < 0 ? "#ef444418" : "transparent";
-        return (
-          <div key={i} className="flex items-center justify-between gap-3 py-2 border-b border-line/10 last:border-b-0">
-            <span className="text-xs text-gray-400 flex-1 leading-snug">{b.label}</span>
-            <span
-              className="text-xs font-mono tnum font-semibold w-8 text-center py-1 rounded-sm shrink-0"
-              style={{ color: ptColor, background: ptBg }}
-            >
-              {b.points > 0 ? "+" : ""}{b.points}
-            </span>
-          </div>
-        );
-      })}
     </div>
   );
 }
@@ -172,7 +138,7 @@ export default function WatchlistPage() {
         cell: (info) => (
           <span className="text-cyan text-xs font-bold tracking-wide">{info.getValue()}</span>
         ),
-        size: 72,
+        size: 80,
       },
       {
         accessorKey: "company_name",
@@ -191,98 +157,59 @@ export default function WatchlistPage() {
         cell: (info) => (
           <span className="text-xs tnum text-gray-500">{fmt.marketCap(info.getValue())}</span>
         ),
-        size: 96,
+        size: 80,
       },
-      // ── EPS ────────────────────────────────────
-      {
-        accessorFn: (row) => row.metrics.eps_growth,
-        id: "eps",
-        header: "EPS성장(%)",
-        meta: { groupStart: true, align: "right" },
-        cell: (info) => (
-          <span className={`text-xs tnum font-medium ${trendClass(info.getValue())}`}>
-            {fmt.pct(info.getValue(), 1)}
-          </span>
-        ),
-        size: 84,
-      },
-      // ── 밸류에이션 ─────────────────────────────
+      // ── 밸류에이션 ────────────────────────────
       {
         accessorFn: (row) => row.metrics.forward_pe,
         id: "fwd_per",
         header: "선행PER",
         meta: { align: "right" },
         cell: (info) => (
-          <span className="text-xs tnum text-gray-500">{fmt.num(info.getValue(), 1)}</span>
+          <span className="text-xs tnum text-gray-400">{fmt.num(info.getValue(), 1)}</span>
         ),
-        size: 76,
+        size: 80,
       },
       {
-        accessorFn: (row) => row.metrics.forward_pe_3y_avg,
-        id: "per_3y",
-        header: "평균PER",
+        accessorFn: (row) => row.metrics.eps_growth,
+        id: "eps",
+        header: "EPS성장(%)",
         meta: { align: "right" },
         cell: (info) => (
-          <span className="text-xs tnum text-gray-500">{fmt.num(info.getValue(), 1)}</span>
+          <span className={`text-xs tnum font-medium ${trendClass(info.getValue())}`}>
+            {fmt.pct(info.getValue(), 1)}
+          </span>
         ),
-        size: 76,
+        size: 80,
       },
-      // ── 수익률 ─────────────────────────────────
+      // ── 퀄리티 ────────────────────────────────
       {
-        accessorKey: "return_1y",
-        header: "1년수익(%)",
+        accessorFn: (row) => row.metrics.roe,
+        id: "roe",
+        header: "ROE(%)",
         meta: { align: "right" },
         cell: (info) => {
           const v = info.getValue();
           if (v == null) return <span className="text-gray-700 text-xs">—</span>;
-          return (
-            <span className={`text-xs tnum ${v >= 0 ? "text-green-400" : "text-red-400"}`}>
-              {v >= 0 ? "+" : ""}{v.toFixed(1)}
-            </span>
-          );
+          const c = v >= 20 ? "text-emerald-400" : v >= 10 ? "text-gray-300" : v >= 0 ? "text-gray-500" : "text-red-400";
+          return <span className={`text-xs tnum ${c}`}>{v.toFixed(1)}</span>;
         },
-        size: 76,
+        size: 80,
       },
       {
-        accessorKey: "return_3y_avg",
-        header: "3년수익(%)",
+        accessorFn: (row) => row.metrics.fcf_yield,
+        id: "fcf_yield",
+        header: "FCF수익(%)",
         meta: { align: "right" },
         cell: (info) => {
           const v = info.getValue();
           if (v == null) return <span className="text-gray-700 text-xs">—</span>;
-          return (
-            <span className={`text-xs tnum ${v >= 0 ? "text-green-400" : "text-red-400"}`}>
-              {v >= 0 ? "+" : ""}{v.toFixed(1)}
-            </span>
-          );
+          const c = v >= 5 ? "text-emerald-400" : v >= 3 ? "text-gray-300" : v >= 1 ? "text-gray-500" : "text-red-400";
+          return <span className={`text-xs tnum ${c}`}>{v.toFixed(1)}</span>;
         },
-        size: 76,
+        size: 80,
       },
-      // ── 기술적 지표 ────────────────────────────
-      {
-        accessorFn: (row) => row.metrics.drawdown_52w,
-        id: "drawdown",
-        header: "52주하락(%)",
-        meta: { align: "right" },
-        cell: (info) => (
-          <span className={`text-xs tnum ${trendClass(info.getValue())}`}>
-            {fmt.pct(info.getValue())}
-          </span>
-        ),
-        size: 76,
-      },
-      {
-        accessorFn: (row) => row.metrics.ma200_deviation,
-        id: "ma200",
-        header: "200일선(%)",
-        meta: { align: "right" },
-        cell: (info) => (
-          <span className={`text-xs tnum ${trendClass(info.getValue(), true)}`}>
-            {fmt.pct(info.getValue())}
-          </span>
-        ),
-        size: 76,
-      },
+      // ── 안전성 ────────────────────────────────
       {
         accessorFn: (row) => row.metrics.debt_to_equity,
         id: "de",
@@ -290,29 +217,18 @@ export default function WatchlistPage() {
         meta: { align: "right" },
         cell: (info) => {
           const v = info.getValue();
-          const c = v == null ? "text-gray-700" : v <= 0.3 ? "text-up" : "text-gray-400";
-          return <span className={`text-xs tnum ${c}`}>{fmt.num(v, 2)}</span>;
+          if (v == null) return <span className="text-gray-700 text-xs">—</span>;
+          const c = v <= 0.5 ? "text-emerald-400" : v > 2.0 ? "text-red-400" : "text-gray-400";
+          return <span className={`text-xs tnum ${c}`}>{v.toFixed(2)}</span>;
         },
-        size: 76,
-      },
-      {
-        accessorFn: (row) => row.metrics.rsi_14,
-        id: "rsi",
-        header: "RSI",
-        meta: { align: "right" },
-        cell: (info) => {
-          const v = info.getValue();
-          const c = v == null ? "text-gray-700" : v <= 25 ? "text-up" : v >= 75 ? "text-down" : "text-gray-400";
-          return <span className={`text-xs tnum ${c}`}>{fmt.num(v, 1)}</span>;
-        },
-        size: 64,
+        size: 80,
       },
       // ── 시그널 ─────────────────────────────────
       {
         accessorFn: (row) => row.score.total,
         id: "score",
         header: "점수",
-        meta: { groupStart: true, extraGap: true, align: "right" },
+        meta: { align: "right" },
         cell: (info) => {
           const s = info.row.original.score;
           return (
@@ -321,29 +237,23 @@ export default function WatchlistPage() {
             </span>
           );
         },
-        size: 72,
+        size: 80,
       },
       {
         id: "actions",
         header: "",
-        meta: { align: "center" },
+        meta: { extraGap: true, align: "center" },
         cell: (info) => (
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex items-center justify-center">
             <button
-              onClick={() => setSelected(info.row.original)}
-              className="text-xs uppercase tracking-wider text-muted hover:text-cyan px-2 py-1 border border-line hover:border-cyan rounded-sm transition-colors"
-            >
-              상세
-            </button>
-            <button
-              onClick={() => handleDelete(info.row.original.ticker)}
+              onClick={(e) => { e.stopPropagation(); handleDelete(info.row.original.ticker); }}
               className="text-xs uppercase tracking-wider text-muted hover:text-down px-2 py-1 border border-line hover:border-down rounded-sm transition-colors"
             >
               삭제
             </button>
           </div>
         ),
-        size: 108,
+        size: 80,
       },
     ],
     [handleDelete]
@@ -446,7 +356,7 @@ export default function WatchlistPage() {
                         key={h.id}
                         onClick={h.column.getToggleSortingHandler()}
                         style={{ width: h.getSize() }}
-                        className={`${alignClass} text-[10px] text-gray-600 py-3 font-medium cursor-pointer select-none hover:text-gray-300 whitespace-nowrap overflow-hidden ${h.column.columnDef.meta?.extraGap ? "pl-28 pr-4" : h.column.columnDef.meta?.groupStart ? "pl-12 pr-4" : "px-4"}`}
+                        className={`${alignClass} text-[10px] text-gray-600 py-3 font-medium cursor-pointer select-none hover:text-gray-300 whitespace-nowrap overflow-hidden ${h.column.columnDef.meta?.extraGap ? "pl-8 pr-4" : "px-4"}`}
                       >
                         <span className="inline-flex items-center gap-1">
                           {flexRender(h.column.columnDef.header, h.getContext())}
@@ -476,14 +386,18 @@ export default function WatchlistPage() {
                 </tr>
               )}
               {table.getRowModel().rows.map((r) => (
-                <tr key={r.id} className="row-hover border-b border-line/40 last:border-b-0">
+                <tr
+                  key={r.id}
+                  className="row-hover border-b border-line/40 last:border-b-0 cursor-pointer"
+                  onClick={() => setSelected(r.original)}
+                >
                   {r.getVisibleCells().map((c) => {
                     const align = c.column.columnDef.meta?.align;
                     const alignClass = align === "right" ? "text-right" : align === "center" ? "text-center" : "";
                     return (
                       <td
                         key={c.id}
-                        className={`py-3 ${alignClass} ${c.column.columnDef.meta?.extraGap ? "pl-28 pr-4" : c.column.columnDef.meta?.groupStart ? "pl-12 pr-4" : "px-4"}`}
+                        className={`py-3 align-middle ${alignClass} ${c.column.columnDef.meta?.extraGap ? "pl-8 pr-4" : "px-4"}`}
                       >
                         {flexRender(c.column.columnDef.cell, c.getContext())}
                       </td>

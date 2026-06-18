@@ -12,6 +12,14 @@ import { fmt } from "../lib/format.js";
 import { isMarketOpen } from "../lib/market.js";
 import { sectorKo } from "../lib/sectors.js";
 
+function CompanyCell({ name }) {
+  return (
+    <span className="text-xs text-gray-300 font-medium truncate block cursor-default">
+      {name}
+    </span>
+  );
+}
+
 function WatchlistButton({ ticker, added, busy, onAdd, onRemove }) {
   if (added) {
     return (
@@ -36,27 +44,9 @@ function WatchlistButton({ ticker, added, busy, onAdd, onRemove }) {
   );
 }
 
-const GRADE_LABEL = {
-  STRONG_BUY: "강매수",
-  BUY_QUEUE:  "매수대기",
-  HOLD:       "관망",
-  SELL_QUEUE: "매도대기",
-  SELL:       "매도",
-};
-
-function SignalPill({ grade }) {
-  if (!grade) return null;
-  const label = GRADE_LABEL[grade] ?? grade;
-  const color = gradeColor(grade);
-  return (
-    <span className="text-xs font-semibold whitespace-nowrap" style={{ color }}>
-      {label}
-    </span>
-  );
-}
 
 export default function ListPage() {
-  const { fullRefreshing, progress, yfinanceBlocked, handleFullRefresh, lastRefreshedAt, q } = useContext(RefreshContext);
+  const { fullRefreshing, progress, yfinanceBlocked, handleFullRefresh, lastRefreshedAt, refreshTrigger, q } = useContext(RefreshContext);
   const marketOpen = isMarketOpen();
 
   const [stocks, setStocks] = useState([]);
@@ -85,7 +75,7 @@ export default function ListPage() {
     const t = setTimeout(load, 250);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sector, q]);
+  }, [sector, q, refreshTrigger]);
 
   async function addToWatchlist(ticker) {
     setBusy(ticker);
@@ -111,40 +101,31 @@ export default function ListPage() {
     }
   }
 
-  const columns = useMemo(
-    () => [
-      {
-        accessorKey: "rank",
-        header: "#",
-        cell: (info) => (
-          <span className="text-[10px] text-gray-600 tnum">{info.getValue() ?? "—"}</span>
-        ),
-        size: 40,
-      },
+  const columns = [
       {
         accessorKey: "ticker",
         header: "티커",
         cell: (info) => (
           <span className="text-cyan text-xs font-bold tracking-wide">{info.getValue()}</span>
         ),
-        size: 72,
+        size: 80,
       },
       {
         accessorKey: "company_name",
         header: "기업명",
         cell: (info) => (
-          <span className="text-xs text-gray-300 font-medium truncate block">{info.getValue()}</span>
+          <CompanyCell name={info.getValue()} />
         ),
-        size: 180,
+        size: 160,
       },
       {
         accessorKey: "market_cap",
         header: "시총",
-        meta: { groupStart: true, align: "right" },
+        meta: { align: "right" },
         cell: (info) => (
           <span className="text-xs tnum text-gray-400">{fmt.marketCap(info.getValue())}</span>
         ),
-        size: 96,
+        size: 80,
       },
       {
         accessorKey: "return_1y",
@@ -156,7 +137,7 @@ export default function ListPage() {
           const c = v >= 0 ? "text-emerald-400" : "text-red-400";
           return <span className={`text-xs tnum ${c}`}>{v >= 0 ? "+" : ""}{v.toFixed(1)}</span>;
         },
-        size: 96,
+        size: 80,
       },
       {
         accessorKey: "return_3y_avg",
@@ -168,22 +149,28 @@ export default function ListPage() {
           const c = v >= 0 ? "text-emerald-400" : "text-red-400";
           return <span className={`text-xs tnum ${c}`}>{v >= 0 ? "+" : ""}{v.toFixed(1)}</span>;
         },
-        size: 96,
+        size: 80,
       },
       {
-        id: "signal",
-        header: "시그널",
-        meta: { groupStart: true, extraGap: true, align: "center" },
+        accessorKey: "tech_score",
+        header: "점수",
+        meta: { align: "right" },
         cell: (info) => {
           const s = info.row.original;
-          return <SignalPill grade={s.tech_grade} />;
+          if (s.tech_score == null) return <span className="text-gray-700 text-xs">—</span>;
+          const color = gradeColor(s.tech_grade);
+          return (
+            <span className="font-mono font-bold tnum text-sm" style={{ color }}>
+              {s.tech_score > 0 ? "+" : ""}{s.tech_score}
+            </span>
+          );
         },
-        size: 96,
+        size: 80,
       },
       {
         id: "action",
         header: "",
-        meta: { groupStart: true, align: "right" },
+        meta: { extraGap: true, align: "right" },
         cell: (info) => (
           <WatchlistButton
             ticker={info.row.original.ticker}
@@ -193,11 +180,9 @@ export default function ListPage() {
             onRemove={removeFromWatchlist}
           />
         ),
-        size: 96,
+        size: 80,
       },
-    ],
-    [busy]
-  );
+  ];
 
   const filteredStocks = useMemo(
     () => gradeFilter ? stocks.filter((s) => s.tech_grade === gradeFilter) : stocks,
@@ -315,7 +300,7 @@ export default function ListPage() {
                         key={h.id}
                         onClick={h.column.getToggleSortingHandler()}
                         style={{ width: h.getSize() }}
-                        className={`${alignClass} text-[10px] text-muted py-3 font-medium cursor-pointer select-none hover:text-gray-200 whitespace-nowrap overflow-hidden ${h.column.columnDef.meta?.extraGap ? "pl-28 pr-4" : h.column.columnDef.meta?.groupStart ? "pl-12 pr-4" : "px-4"}`}
+                        className={`${alignClass} text-[10px] text-muted py-3 font-medium cursor-pointer select-none hover:text-gray-200 whitespace-nowrap overflow-hidden ${h.column.columnDef.meta?.extraGap ? "pl-8 pr-4" : "px-4"}`}
                       >
                         <span className="inline-flex items-center gap-1">
                           {flexRender(h.column.columnDef.header, h.getContext())}
@@ -348,7 +333,7 @@ export default function ListPage() {
                     const align = c.column.columnDef.meta?.align;
                     const alignClass = align === "right" ? "text-right" : align === "center" ? "text-center" : "";
                     return (
-                      <td key={c.id} className={`py-3 ${alignClass} ${c.column.columnDef.meta?.extraGap ? "pl-28 pr-4" : c.column.columnDef.meta?.groupStart ? "pl-12 pr-4" : "px-4"}`}>
+                      <td key={c.id} className={`py-3 align-middle ${alignClass} ${c.column.columnDef.meta?.extraGap ? "pl-8 pr-4" : "px-4"}`}>
                         {flexRender(c.column.columnDef.cell, c.getContext())}
                       </td>
                     );

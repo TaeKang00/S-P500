@@ -43,6 +43,9 @@ class Stock(Base):
     eps_y3 = Column(Float)
     current_per = Column(Float)
     forward_pe_vs_avg = Column(Float)
+    business_summary = Column(String)
+    roe = Column(Float)        # Return on Equity (%)
+    fcf_yield = Column(Float)  # FCF / Market Cap × 100 (%)
 
     watchlist_item = relationship("WatchlistItem", back_populates="stock", uselist=False)
 
@@ -72,6 +75,8 @@ class WatchlistItem(Base):
     eps_y1 = Column(Float)                  # most recent fiscal year EPS
     eps_y2 = Column(Float)
     eps_y3 = Column(Float)
+    roe = Column(Float)        # Return on Equity (%)
+    fcf_yield = Column(Float)  # FCF / Market Cap × 100 (%)
     last_refreshed = Column(DateTime, default=datetime.utcnow)
 
     stock = relationship("Stock", back_populates="watchlist_item")

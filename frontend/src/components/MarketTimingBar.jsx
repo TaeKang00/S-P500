@@ -105,7 +105,7 @@ export function MarketTimingBar({ fullRefreshing, yfinanceBlocked, refreshTrigge
         tooltip="CNN Fear & Greed Index (0=극도공포, 100=극도탐욕)"
       />
 
-      <div className="ml-auto flex items-center gap-4 pr-3">
+      <div className="ml-auto flex items-center gap-4 pr-3 self-stretch">
         <div className="flex items-center gap-2">
           <button
             onClick={handleTimingRefresh}
@@ -122,8 +122,8 @@ export function MarketTimingBar({ fullRefreshing, yfinanceBlocked, refreshTrigge
           </button>
         </div>
         {yfinanceBlocked === true && (
-          <span className="text-[10px] text-red-400 leading-none">
-            ⚠ 데이터 소스 차단됨
+          <span className="text-[10px] text-red-400 self-center">
+            데이터 소스 차단됨
           </span>
         )}
       </div>

@@ -255,6 +255,19 @@ def _process_fast_info_batch(
                 de = de / 100.0
             entry["debt_to_equity"] = _clean(de)
 
+        summary = info.get("longBusinessSummary", "")
+        if summary:
+            entry["business_summary"] = summary[:600]
+
+        roe_raw = info.get("returnOnEquity")
+        if roe_raw is not None and not (isinstance(roe_raw, float) and math.isnan(roe_raw)):
+            entry["roe"] = _clean(float(roe_raw) * 100.0)
+
+        fcf_raw = info.get("freeCashflow")
+        mcap_raw = info.get("marketCap") or (cap if cap else None)
+        if fcf_raw is not None and mcap_raw and mcap_raw > 0:
+            entry["fcf_yield"] = _clean(float(fcf_raw) / float(mcap_raw) * 100.0)
+
         if price and trail_eps and trail_eps > 0:
             current_per = price / trail_eps
             entry["current_per"] = _clean(current_per)
@@ -341,6 +354,8 @@ class StockDetail:
     eps_y2: Optional[float] = None
     eps_y3: Optional[float] = None
     debt_to_equity: Optional[float] = None
+    roe: Optional[float] = None        # Return on Equity (%)
+    fcf_yield: Optional[float] = None  # FCF / Market Cap × 100 (%)
 
 
 def fetch_watchlist_detail(ticker: str) -> StockDetail:
@@ -395,6 +410,16 @@ def fetch_watchlist_detail(ticker: str) -> StockDetail:
     detail.forward_pe = _clean(info.get("forwardPE"))
     detail.forward_eps = _clean(info.get("forwardEps"))
     detail.trailing_eps = _clean(info.get("trailingEps"))
+
+    roe_raw = info.get("returnOnEquity")
+    if roe_raw is not None and not (isinstance(roe_raw, float) and math.isnan(roe_raw)):
+        detail.roe = _clean(float(roe_raw) * 100.0)
+
+    fcf_raw = info.get("freeCashflow")
+    mcap_fi = getattr(tk.fast_info, "market_cap", None)
+    mcap = mcap_fi or info.get("marketCap")
+    if fcf_raw is not None and mcap and float(mcap) > 0:
+        detail.fcf_yield = _clean(float(fcf_raw) / float(mcap) * 100.0)
 
     de = info.get("debtToEquity")
     if de is not None and not (isinstance(de, float) and math.isnan(de)):

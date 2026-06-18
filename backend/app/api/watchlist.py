@@ -52,6 +52,8 @@ def _build_scored_item(item: WatchlistItem, market_score: int,
             trailing_eps=item.trailing_eps,
             debt_to_equity=item.debt_to_equity,
             eps_growth=item.eps_growth,
+            roe=item.roe,
+            fcf_yield=item.fcf_yield,
             last_refreshed=item.last_refreshed,
         ),
         score=ScoreBreakdown(
@@ -116,6 +118,8 @@ def add_to_watchlist(req: WatchlistAddRequest, db: Session = Depends(get_db)):
         eps_y3=stock.eps_y3,
         current_per=stock.current_per,
         forward_pe_vs_avg=stock.forward_pe_vs_avg,
+        roe=stock.roe,
+        fcf_yield=stock.fcf_yield,
         last_refreshed=stock.last_updated,
     )
     # FWD PER = current_price / forward_eps

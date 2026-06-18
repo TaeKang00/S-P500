@@ -45,6 +45,8 @@ def _migrate_add_columns():
         ("current_per", "FLOAT"),
         ("forward_pe", "FLOAT"),
         ("forward_pe_3y_avg", "FLOAT"),
+        ("roe", "FLOAT"),
+        ("fcf_yield", "FLOAT"),
     ]
     stocks_cols = [
         ("drawdown_52w", "FLOAT"),
@@ -72,6 +74,9 @@ def _migrate_add_columns():
             ("current_per", "FLOAT"),
             ("forward_pe_vs_avg", "FLOAT"),
         ]
+        stocks_extra.append(("business_summary", "TEXT"))
+        stocks_extra.append(("roe", "FLOAT"))
+        stocks_extra.append(("fcf_yield", "FLOAT"))
         for col, col_type in stocks_cols + stocks_extra:
             try:
                 conn.execute(text(f"ALTER TABLE stocks ADD COLUMN {col} {col_type}"))
