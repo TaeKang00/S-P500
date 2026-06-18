@@ -35,7 +35,7 @@ function ScoreDetail({ item, onClose }) {
         </div>
 
         <div className="py-1 overflow-y-auto max-h-[50vh]">
-          {[...s.stock_breakdown, ...s.market_breakdown].map((b, i) => {
+          {[...s.stock_breakdown, ...s.market_breakdown].sort((a, b) => b.points - a.points).map((b, i) => {
             const ptColor = b.points > 0 ? "#10b981" : b.points < 0 ? "#ef4444" : "#6b7280";
             return (
               <div key={i} className="flex items-center justify-between px-5 py-3 border-b border-line/20 last:border-b-0">
