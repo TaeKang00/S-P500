@@ -30,6 +30,15 @@ function RecBadge({ rec }) {
   );
 }
 
+function DetailRow({ label, children }) {
+  return (
+    <div className="flex items-center justify-between px-5 py-3 border-b border-line/20 last:border-b-0">
+      <span className="text-xs text-gray-600">{label}</span>
+      {children}
+    </div>
+  );
+}
+
 function AnalystDetail({ item, onClose }) {
   if (!item) return null;
   const m = item.metrics;
@@ -40,15 +49,6 @@ function AnalystDetail({ item, onClose }) {
   const upside = cur && tgt ? (tgt / cur - 1) * 100 : null;
   const upsideColor = upside == null ? "#6b7280" : upside >= 20 ? "#10b981" : upside >= 5 ? "#d1d5db" : upside >= 0 ? "#6b7280" : "#ef4444";
   const cfg = REC_CONFIG[m.recommendation] ?? { label: m.recommendation ?? "—", color: "#6b7280" };
-
-  function Row({ label, children }) {
-    return (
-      <div className="flex items-center justify-between px-5 py-3 border-b border-line/20 last:border-b-0">
-        <span className="text-xs text-gray-600">{label}</span>
-        {children}
-      </div>
-    );
-  }
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 flex items-center justify-center p-6" onClick={onClose}>
@@ -69,31 +69,31 @@ function AnalystDetail({ item, onClose }) {
         </div>
 
         <div className="py-1">
-          <Row label="애널리스트 의견">
+          <DetailRow label="애널리스트 의견">
             <span className="text-xs font-semibold px-2 py-1 rounded-sm" style={{ color: cfg.color, background: cfg.color + "22" }}>
               {cfg.label}
             </span>
-          </Row>
-          <Row label="참여 애널리스트">
+          </DetailRow>
+          <DetailRow label="참여 애널리스트">
             <span className="text-xs tnum text-gray-400">{m.analyst_count != null ? `${m.analyst_count}명` : "—"}</span>
-          </Row>
-          <Row label="목표가 평균">
+          </DetailRow>
+          <DetailRow label="목표가 평균">
             <span className="text-xs tnum text-gray-200 font-medium">{tgt != null ? `$${tgt.toFixed(1)}` : "—"}</span>
-          </Row>
-          <Row label="목표가 최고">
+          </DetailRow>
+          <DetailRow label="목표가 최고">
             <span className="text-xs tnum text-gray-500">{m.target_price_high != null ? `$${m.target_price_high.toFixed(1)}` : "—"}</span>
-          </Row>
-          <Row label="목표가 최저">
+          </DetailRow>
+          <DetailRow label="목표가 최저">
             <span className="text-xs tnum text-gray-500">{m.target_price_low != null ? `$${m.target_price_low.toFixed(1)}` : "—"}</span>
-          </Row>
-          <Row label="현재가">
+          </DetailRow>
+          <DetailRow label="현재가">
             <span className="text-xs tnum text-gray-400">{cur != null ? `$${cur.toFixed(1)}` : "—"}</span>
-          </Row>
-          <Row label="종합 점수">
+          </DetailRow>
+          <DetailRow label="종합 점수">
             <span className="text-sm font-bold font-mono tnum" style={{ color: gradeColor(s.grade) }}>
               {s.total > 0 ? "+" : ""}{s.total}
             </span>
-          </Row>
+          </DetailRow>
         </div>
 
       </div>
