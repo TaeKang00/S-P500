@@ -57,7 +57,7 @@ function ScoreDetail({ item, onClose }) {
 }
 
 export default function WatchlistPage() {
-  const { fullRefreshing, watchlistLastRefreshedAt, setWatchlistLastRefreshedAt, q } = useContext(RefreshContext);
+  const { fullRefreshing, watchlistLastRefreshedAt, setWatchlistLastRefreshedAt, watchlistTrigger, q } = useContext(RefreshContext);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -81,7 +81,7 @@ export default function WatchlistPage() {
     }
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [watchlistTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!refreshing) return;

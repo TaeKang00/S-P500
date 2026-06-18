@@ -46,7 +46,7 @@ function WatchlistButton({ ticker, added, busy, onAdd, onRemove }) {
 
 
 export default function ListPage() {
-  const { fullRefreshing, progress, yfinanceBlocked, handleFullRefresh, lastRefreshedAt, refreshTrigger, q } = useContext(RefreshContext);
+  const { fullRefreshing, progress, yfinanceBlocked, handleFullRefresh, lastRefreshedAt, refreshTrigger, setWatchlistTrigger, q } = useContext(RefreshContext);
   const marketOpen = isMarketOpen();
 
   const [stocks, setStocks] = useState([]);
@@ -81,6 +81,7 @@ export default function ListPage() {
     setBusy(ticker);
     try {
       await api.addWatchlist(ticker);
+      setWatchlistTrigger((t) => t + 1);
       await load();
     } catch (e) {
       alert(e.message);
@@ -93,6 +94,7 @@ export default function ListPage() {
     setBusy(ticker);
     try {
       await api.removeWatchlist(ticker);
+      setWatchlistTrigger((t) => t + 1);
       await load();
     } catch (e) {
       alert(e.message);

@@ -65,6 +65,7 @@ export default function App() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [lastRefreshedAt, setLastRefreshedAt] = useState(null);
   const [watchlistLastRefreshedAt, setWatchlistLastRefreshedAt] = useState(null);
+  const [watchlistTrigger, setWatchlistTrigger] = useState(0);
   const [q, setQ] = useState("");
 
   useEffect(() => {
@@ -114,7 +115,7 @@ export default function App() {
   }
 
   return (
-    <RefreshContext.Provider value={{ fullRefreshing, progress, yfinanceBlocked, refreshTrigger, lastRefreshedAt, handleFullRefresh, watchlistLastRefreshedAt, setWatchlistLastRefreshedAt, q, setQ }}>
+    <RefreshContext.Provider value={{ fullRefreshing, progress, yfinanceBlocked, refreshTrigger, lastRefreshedAt, handleFullRefresh, watchlistLastRefreshedAt, setWatchlistLastRefreshedAt, watchlistTrigger, setWatchlistTrigger, q, setQ }}>
       <div className="min-h-screen flex flex-col">
         <TopNav />
         <main className="flex-1">

@@ -102,7 +102,7 @@ function AnalystDetail({ item, onClose }) {
 }
 
 export default function TargetPage() {
-  const { fullRefreshing, q } = useContext(RefreshContext);
+  const { fullRefreshing, watchlistTrigger, q } = useContext(RefreshContext);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -120,7 +120,7 @@ export default function TargetPage() {
     }
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [watchlistTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!refreshing) return;
