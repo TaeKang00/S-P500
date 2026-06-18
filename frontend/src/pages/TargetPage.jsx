@@ -184,7 +184,7 @@ export default function TargetPage() {
       cell: (info) => {
         const v = info.getValue();
         if (v == null) return <span className="text-gray-700 text-xs">—</span>;
-        return <span className="text-xs tnum text-gray-200 font-medium">${Math.round(v)}</span>;
+        return <span className="text-xs tnum text-gray-200 font-medium">${v.toFixed(2)}</span>;
       },
       size: 80,
     },
@@ -196,7 +196,7 @@ export default function TargetPage() {
       cell: (info) => {
         const v = info.getValue();
         if (v == null) return <span className="text-gray-700 text-xs">—</span>;
-        return <span className="text-xs tnum text-gray-400">${Math.round(v)}</span>;
+        return <span className="text-xs tnum text-gray-400">${v.toFixed(2)}</span>;
       },
       size: 80,
     },
