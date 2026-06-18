@@ -185,12 +185,12 @@ export default function TargetPage() {
         const low = row.metrics.target_price_low;
         if (v == null) return <span className="text-gray-700 text-xs">—</span>;
         return (
-          <div className="text-right">
+          <div className="flex flex-col items-end gap-0.5">
             <span className="text-xs tnum text-gray-200 font-medium">${v.toFixed(2)}</span>
             {high != null && low != null && (
-              <div className="text-[10px] tnum text-gray-600 mt-0.5">
+              <span className="text-[10px] tnum text-gray-600">
                 ${low.toFixed(0)}–${high.toFixed(0)}
-              </div>
+              </span>
             )}
           </div>
         );
@@ -345,7 +345,7 @@ export default function TargetPage() {
                     return (
                       <td
                         key={c.id}
-                        className={`py-3 align-middle ${alignClass} ${extraGap ? "pl-8 pr-4" : "px-4"}`}
+                        className={`py-4 align-middle ${alignClass} ${extraGap ? "pl-8 pr-4" : "px-4"}`}
                       >
                         {flexRender(c.column.columnDef.cell, c.getContext())}
                       </td>
