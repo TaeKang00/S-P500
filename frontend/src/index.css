@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  font-family: 'Pretendard Variable', Pretendard, system-ui, -apple-system, sans-serif;
+  letter-spacing: -0.025em;
+}
+
+html, body, #root {
+  height: 100%;
+  background: #0a0e14;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0e14;
+}
+::-webkit-scrollbar-thumb {
+  background: #1f2937;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2d3748;
+}
+
+/* Tabular numbers for tables — keeps digits aligned column-by-column. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Subtle row hover that doesn't shout */
+.row-hover:hover {
+  background: rgba(96, 165, 250, 0.04);
+}
+
+/* Pulsing dot for live indicator */
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.pulse-dot {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
