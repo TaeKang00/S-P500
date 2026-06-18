@@ -78,6 +78,7 @@ export default function TargetPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [progress, setProgress] = useState(null);
   const [selected, setSelected] = useState(null);
+  const [busy, setBusy] = useState(null);
   const [sorting, setSorting] = useState([{ id: "upside", desc: true }]);
 
   async function load() {
@@ -111,6 +112,18 @@ export default function TargetPage() {
     }, 1000);
     return () => clearInterval(id);
   }, [refreshing]);
+
+  async function handleRemove(ticker) {
+    setBusy(ticker);
+    try {
+      await api.removeWatchlist(ticker);
+      await load();
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      setBusy(null);
+    }
+  }
 
   async function handleRefresh() {
     setRefreshing(true);
@@ -214,7 +227,25 @@ export default function TargetPage() {
       },
       size: 80,
     },
-  ], []);
+    {
+      id: "action",
+      header: "",
+      meta: { align: "right" },
+      cell: (info) => {
+        const ticker = info.row.original.ticker;
+        return (
+          <button
+            onClick={(e) => { e.stopPropagation(); handleRemove(ticker); }}
+            disabled={busy === ticker}
+            className="text-xs text-muted hover:text-gray-200 px-2 py-1 transition-colors border border-line hover:border-cyan/50 rounded-sm bg-ink-900 disabled:opacity-40"
+          >
+            삭제
+          </button>
+        );
+      },
+      size: 80,
+    },
+  ], [busy]);
 
   const filteredItems = useMemo(() => {
     if (!q) return items;
