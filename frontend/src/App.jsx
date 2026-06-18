@@ -28,7 +28,7 @@ function TopNav() {
           </NavLink>
           <nav className="flex gap-1">
             <NavLink to="/list" className={linkClass}>전체종목</NavLink>
-            <NavLink to="/watchlist" className={linkClass}>관심종목</NavLink>
+            <NavLink to="/watchlist" className={linkClass}>분석</NavLink>
             <NavLink to="/targets" className={linkClass}>목표가</NavLink>
           </nav>
         </div>

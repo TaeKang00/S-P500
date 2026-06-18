@@ -289,7 +289,7 @@ export default function WatchlistPage() {
       <div className="flex items-center justify-between gap-4 mb-5">
         <div>
           <h1 className="text-2xl font-bold text-white tracking-tight">
-            관심종목 <span className="text-cyan">{filteredItems.length}</span>
+            분석 <span className="text-cyan">{filteredItems.length}</span>
           </h1>
         </div>
         <div className="flex items-center gap-3">
