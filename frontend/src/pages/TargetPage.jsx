@@ -66,7 +66,6 @@ function AnalystDetail({ item, onClose }) {
           <div className="text-3xl font-bold tnum" style={{ color: upsideColor }}>
             {upside != null ? `${upside >= 0 ? "+" : ""}${upside.toFixed(1)}%` : "—"}
           </div>
-          <div className="text-[10px] text-gray-600 mt-1.5">상승여력</div>
         </div>
 
         <div className="py-1">
