@@ -26,7 +26,7 @@ function WatchlistButton({ ticker, added, busy, onAdd, onRemove }) {
       <button
         onClick={() => onRemove(ticker)}
         disabled={busy}
-        className="group text-xs text-up border border-up/30 hover:border-red-500/60 hover:text-red-400 hover:bg-red-500/10 disabled:opacity-40 px-2 py-1 rounded-sm transition-colors whitespace-nowrap"
+        className="group text-xs text-muted hover:text-gray-200 border border-line hover:border-cyan/50 disabled:opacity-40 px-2 py-1 rounded-sm transition-colors whitespace-nowrap bg-ink-900"
       >
         <span className="group-hover:hidden">✓ 관심종목</span>
         <span className="hidden group-hover:inline">− 삭제</span>
@@ -37,7 +37,7 @@ function WatchlistButton({ ticker, added, busy, onAdd, onRemove }) {
     <button
       onClick={() => onAdd(ticker)}
       disabled={busy}
-      className="text-xs text-cyan hover:text-gray-100 disabled:opacity-40 px-2 py-1 transition-colors border border-line hover:border-cyan rounded-sm"
+      className="text-xs text-muted hover:text-gray-200 disabled:opacity-40 px-2 py-1 transition-colors border border-line hover:border-cyan/50 rounded-sm bg-ink-900"
     >
       추가
     </button>
