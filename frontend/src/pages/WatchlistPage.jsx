@@ -247,7 +247,7 @@ export default function WatchlistPage() {
           <div className="flex items-center justify-center">
             <button
               onClick={(e) => { e.stopPropagation(); handleDelete(info.row.original.ticker); }}
-              className="text-xs text-red-400 hover:text-white hover:bg-red-500/10 px-2 py-1 transition-colors border border-red-400/30 hover:border-red-400 rounded-sm"
+              className="text-xs text-red-400 hover:text-gray-100 px-2 py-1 transition-colors border border-line rounded-sm"
             >
               삭제
             </button>
