@@ -297,29 +297,6 @@ def refresh_market_timing(db: Session) -> dict:
 
 # ───────────────────────── orchestrator ─────────────────────────
 
-def run_watchlist_refresh() -> dict:
-    """Refresh watchlist details only, with full progress tracking."""
-    if not refresh_state.try_start():
-        logger.info("run_watchlist_refresh: already running — skipped")
-        return {}
-    logger.info("===== run_watchlist_refresh started =====")
-    db = SessionLocal()
-    try:
-        refresh_state.update(0, "관심종목 갱신 시작…")
-        counts = refresh_watchlist_details(
-            db,
-            on_progress=lambda pct, step: refresh_state.update(pct, step),
-        )
-        refresh_state.finish()
-        return counts
-    except Exception:
-        refresh_state.fail()
-        raise
-    finally:
-        db.close()
-        logger.info("===== run_watchlist_refresh finished =====")
-
-
 def run_daily_update(_started: bool = False) -> dict:
     """Top-level entry. Safe to call manually too."""
     if not _started:

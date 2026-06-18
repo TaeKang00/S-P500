@@ -57,7 +57,7 @@ function ScoreDetail({ item, onClose }) {
 }
 
 export default function WatchlistPage() {
-  const { fullRefreshing, watchlistLastRefreshedAt, setWatchlistLastRefreshedAt, watchlistTrigger, q } = useContext(RefreshContext);
+  const { fullRefreshing, watchlistLastRefreshedAt, setWatchlistLastRefreshedAt, watchlistTrigger, setWatchlistTrigger, q } = useContext(RefreshContext);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -123,11 +123,11 @@ export default function WatchlistPage() {
     if (!confirm(`${ticker}를 관심종목에서 제거하시겠습니까?`)) return;
     try {
       await api.removeWatchlist(ticker);
-      setItems((prev) => prev.filter((i) => i.ticker !== ticker));
+      setWatchlistTrigger((t) => t + 1);
     } catch (e) {
       alert(e.message);
     }
-  }, []);
+  }, [setWatchlistTrigger]);
 
   const columns = useMemo(
     () => [

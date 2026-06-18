@@ -8,7 +8,6 @@ import {
 } from "@tanstack/react-table";
 import { api } from "../api/client.js";
 import { gradeColor } from "../components/SignalBadge.jsx";
-import { fmt } from "../lib/format.js";
 
 const REC_CONFIG = {
   strong_buy:  { label: "강매수", color: "#10b981" },
@@ -102,7 +101,7 @@ function AnalystDetail({ item, onClose }) {
 }
 
 export default function TargetPage() {
-  const { fullRefreshing, watchlistTrigger, q } = useContext(RefreshContext);
+  const { fullRefreshing, watchlistTrigger, setWatchlistTrigger, q } = useContext(RefreshContext);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -147,7 +146,7 @@ export default function TargetPage() {
     setBusy(ticker);
     try {
       await api.removeWatchlist(ticker);
-      await load();
+      setWatchlistTrigger((t) => t + 1);
     } catch (e) {
       alert(e.message);
     } finally {
